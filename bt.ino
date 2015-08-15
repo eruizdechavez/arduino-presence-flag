@@ -22,7 +22,7 @@ void setup()
 {
   // Initialize USB Serial for monitoring
   Serial.begin(BAUD_RATE);
-  Serial.println("ready");
+  Serial.println("ready!");
 
   // Initialize Software Serial
   mySerial.begin(BAUD_RATE);
@@ -40,12 +40,10 @@ void loop()
   unsigned long currentTime = millis();
 
   if ((currentTime - lastTime) > interval) {
-
-    Serial.println("loop");
-
     lastTime = currentTime;
 
     // Set Bluetooth modem to command mode
+    Serial.println("$$$");
     mySerial.print("$$$");
     delay(200);
 
@@ -54,6 +52,7 @@ void loop()
     flushSerial();
 
     // Ask for connection status
+    Serial.println("GK");
     mySerial.println("GK");
     delay(200);
 
@@ -66,8 +65,10 @@ void loop()
       // Read Serial data until we find the first 1 or 0
       for (int i = 0; i < len; i++) {
         char c = mySerial.read();
+        Serial.print(c);
         if (c == '0' || c == '1') {
           isConnected = c == '1';
+          flushSerial();
           break;
         }
       }
@@ -76,18 +77,20 @@ void loop()
     if (isConnected) {
       // If Bluetooth Modem is connected, ask the servo
       // to take the flag up
-      Serial.println("connected");
+      // Serial.println("> connected");
       
       position = FLAG_UP;
     } else {
       // If Bluetooth Modem is not connected, ask the servo
       // to take the flag down ...
-      Serial.println("disconnected");
+      // Serial.println("> disconnected");
       position = FLAG_DOWN;
 
       // ... and attempt to connect
       char command[14] = "C,";
       strcat(command, laptop);
+      Serial.print("< ");
+      Serial.println(command);
       mySerial.println(command);
     }
     
@@ -102,7 +105,7 @@ void loop()
 // Empty Serial data
 void flushSerial() {
   for (int i = 0; i < mySerial.available(); i++) {
-    mySerial.read();
+    Serial.print((char)mySerial.read());
   }
 }
 
